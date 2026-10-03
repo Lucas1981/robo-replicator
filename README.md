@@ -1,6 +1,6 @@
 # Robotticelli — the bot-based art replicator
 
-This repository turns a photo into vector drawing paths that a Hugging Face SO-101 arm can eventually trace. The current pipeline covers image upload, OpenAI-powered outline generation, bitmap-to-SVG vectorization, and sample robot playback datasets.
+This repository turns a photo into vector drawing paths and optionally a LeRobot replay dataset for a Hugging Face SO-101 arm. The pipeline covers image upload, OpenAI-powered outline generation, bitmap-to-SVG vectorization, and a separate SVG-to-robot-dataset export step.
 
 ## Prerequisites
 
@@ -35,6 +35,7 @@ OPENAI_API_KEY=sk-your-actual-key-here
 OPENAI_IMAGE_MODEL=gpt-image-1
 DEBUG_SKIP_LLM_STEP=false
 DEBUG_SKIP_VECTORIZE_STEP=false
+DEBUG_SKIP_ROBOT_STEP=false
 ```
 
 Only `backend/.env.example` is committed. `backend/.env` is gitignored and must be created locally on each machine.
@@ -54,11 +55,21 @@ DEBUG_SKIP_VECTORIZE_STEP=true
 |------|-------------|------------------|
 | `DEBUG_SKIP_LLM_STEP` | Skips OpenAI outline generation | `backend/resources/outline-sample.png` |
 | `DEBUG_SKIP_VECTORIZE_STEP` | Skips bitmap-to-SVG conversion | `backend/resources/paths-sample.svg` |
+| `DEBUG_SKIP_ROBOT_STEP` | Skips SVG-to-LeRobotDataset export | `backend/resources/draw-sample.zip` |
 
-The API still validates uploads. `/api/process` returns an SVG path file (`{name}-paths.svg`). Regenerate the paths sample after updating the outline sample:
+`/api/process` returns an SVG path file (`{name}-paths.svg`). `/api/robot-dataset` accepts that SVG and returns a LeRobotDataset zip (`{name}-draw.zip`) for `lerobot-replay`.
+
+Regenerate sample assets after updating the outline sample:
 
 ```bash
 python backend/scripts/generate_paths_sample.py
+python backend/scripts/generate_robot_sample.py
+```
+
+Robot dataset export requires LeRobot:
+
+```bash
+pip install -r backend/requirements-robot.txt
 ```
 
 Check active flags: `curl http://127.0.0.1:8000/api/health`
@@ -91,7 +102,7 @@ cd frontend
 npm run dev
 ```
 
-Open http://localhost:5173, upload an image, click **Process file**, then **Download** the SVG paths file. With both debug flags off, processing usually takes 30–90 seconds; with both debug flags on it returns immediately.
+Open http://localhost:5173, upload an image, click **Process file**, then **Download SVG** or **Generate robot dataset**. With all debug flags off, image processing usually takes 30–90 seconds; with all debug flags on both steps return immediately.
 
 The frontend proxies `/api` to the backend, so both must be running.
 
@@ -103,7 +114,9 @@ These scripts live under `samples/` and do not require the web app:
 |--------|---------|
 | `samples/viz-sample.sh` | Joint-plot replay in Rerun |
 | `samples/viz-sample-urdf.sh` | 3D SO-101 URDF replay in Rerun |
-| `samples/replay-sample.sh` | Replay on a physical SO-101 via `lerobot-replay` |
+| `samples/replay-sample.sh` | Replay the square sample on a physical SO-101 |
+| `samples/replay-draw.sh` | Replay any generated `*-draw` dataset on hardware |
+| `scripts/viz-complete-output-example.sh` | Visualize the checked-in full pipeline output (SO-101 URDF + joints) in Rerun |
 
 Generate the square sample dataset:
 
@@ -119,11 +132,23 @@ Replay on hardware:
 SO101_PORT=/dev/tty.usbmodemXXXX SO101_ID=YOUR_ARM_ID ./samples/replay-sample.sh
 ```
 
+Convert an SVG path file to a dataset offline:
+
+```bash
+python backend/scripts/generate_robot_dataset.py backend/resources/paths-sample.svg --output /tmp/my_draw
+```
+
+Replay a downloaded dataset (unzip `{name}-draw.zip` first):
+
+```bash
+SO101_PORT=/dev/tty.usbmodemXXXX SO101_ID=YOUR_ARM_ID ./samples/replay-draw.sh /path/to/extracted_draw_folder
+```
+
 ## Project layout
 
 ```
 backend/          FastAPI API (image validation, OpenAI outline generation)
-backend/resources/  Sample assets (outline-sample.png, paths-sample.svg)
+backend/resources/  Sample assets and complete-output-example LeRobotDataset
 frontend/         React upload UI
 scripts/          Dataset generators and URDF visualizer
 samples/          Example LeRobot datasets and helper scripts
@@ -134,5 +159,5 @@ samples/          Example LeRobot datasets and helper scripts
 - [x] Upload interface for source images
 - [x] LLM connection to produce a cartoon-style outline
 - [x] Convert the outline to vector paths
-- [ ] Map paths to SO-101 joint movements
-- [ ] Export robot-ready command files
+- [x] Map paths to SO-101 joint movements
+- [x] Export robot-ready command files (LeRobotDataset v3.0 zip via `/api/robot-dataset`)

@@ -7,6 +7,7 @@ BACKEND_ROOT = Path(__file__).resolve().parent.parent
 RESOURCES_DIR = BACKEND_ROOT / "resources"
 DEFAULT_DEBUG_OUTLINE_SAMPLE = RESOURCES_DIR / "outline-sample.png"
 DEFAULT_DEBUG_PATHS_SAMPLE = RESOURCES_DIR / "paths-sample.svg"
+DEFAULT_DEBUG_DRAW_SAMPLE = RESOURCES_DIR / "draw-sample.zip"
 
 load_dotenv(BACKEND_ROOT / ".env")
 
@@ -40,6 +41,11 @@ DEBUG_OUTLINE_SAMPLE_PATH = Path(
 DEBUG_SKIP_VECTORIZE_STEP = _env_bool("DEBUG_SKIP_VECTORIZE_STEP", False)
 DEBUG_PATHS_SAMPLE_PATH = Path(
     os.getenv("DEBUG_PATHS_SAMPLE_PATH", str(DEFAULT_DEBUG_PATHS_SAMPLE))
+).resolve()
+
+DEBUG_SKIP_ROBOT_STEP = _env_bool("DEBUG_SKIP_ROBOT_STEP", False)
+DEBUG_DRAW_SAMPLE_PATH = Path(
+    os.getenv("DEBUG_DRAW_SAMPLE_PATH", str(DEFAULT_DEBUG_DRAW_SAMPLE))
 ).resolve()
 
 OUTLINE_PROMPT = os.getenv(

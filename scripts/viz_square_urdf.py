@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Replay the square_draw sample in Rerun with a 3D SO-101 URDF model."""
+"""Replay a LeRobotDataset in Rerun with a 3D SO-101 URDF model and joint plots."""
 
 from __future__ import annotations
 
@@ -74,32 +74,36 @@ def joint_value_radians(feature_name: str, value: float, urdf_joint: rr.urdf.Urd
 def visualize(
     dataset_root: Path,
     assets_dir: Path,
+    repo_id: str,
     episode_index: int = 0,
     spawn_viewer: bool = True,
     save_path: Path | None = None,
 ) -> None:
     urdf_path = ensure_so101_assets(assets_dir)
-    dataset = LeRobotDataset(REPO_ID, root=dataset_root, episodes=[episode_index])
+    dataset = LeRobotDataset(repo_id, root=dataset_root, episodes=[episode_index])
     actions = dataset.select_columns("action")
     action_names = dataset.features["action"]["names"]
 
     urdf_tree = rr.urdf.UrdfTree.from_file_path(urdf_path)
     urdf_joints = {joint.name: joint for joint in urdf_tree.joints() if joint.joint_type == "revolute"}
 
-    rr.init(f"{REPO_ID}/urdf_episode_{episode_index}", spawn=spawn_viewer and save_path is None)
+    rr.init(f"{repo_id}/urdf_episode_{episode_index}", spawn=spawn_viewer and save_path is None)
     urdf_tree.log_urdf_to_recording()
 
     robot_name = urdf_tree.name.replace(" ", "_")
+    arm_view = rrb.Spatial3DView(
+        name="SO-101",
+        origin=f"/{robot_name}",
+        overrides={
+            f"{robot_name}/collision_geometries": rrb.EntityBehavior(visible=False),
+        },
+    )
+    joints_view = rrb.TimeSeriesView(origin="action", name="Joint commands")
     blueprint = rrb.Blueprint(
-        rrb.Grid(
-            rrb.Spatial3DView(
-                name="SO-101",
-                origin=f"/{robot_name}",
-                overrides={
-                    f"{robot_name}/collision_geometries": rrb.EntityBehavior(visible=False),
-                },
-            ),
-            rrb.TimeSeriesView(origin="action", name="Joint commands"),
+        rrb.Tabs(
+            arm_view,
+            joints_view,
+            active_tab="SO-101",
         )
     )
     rr.send_blueprint(blueprint)
@@ -129,6 +133,11 @@ def main() -> None:
     project_root = Path(__file__).resolve().parent.parent
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
+        "--repo-id",
+        default=REPO_ID,
+        help="LeRobotDataset repo id label (any value works when --dataset-root is local)",
+    )
+    parser.add_argument(
         "--dataset-root",
         type=Path,
         default=project_root / "samples" / "square_draw",
@@ -151,6 +160,7 @@ def main() -> None:
     visualize(
         dataset_root=args.dataset_root.resolve(),
         assets_dir=args.assets_dir.resolve(),
+        repo_id=args.repo_id,
         episode_index=args.episode_index,
         save_path=args.save,
     )

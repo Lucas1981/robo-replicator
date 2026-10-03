@@ -6,4 +6,12 @@ export type ProcessResult =
   | { ok: true; blob: Blob; filename: string }
   | { ok: false; error: string };
 
-export type AppStatus = "idle" | "validating" | "ready" | "processing" | "success" | "error";
+export type AppStatus =
+  | "idle"
+  | "validating"
+  | "ready"
+  | "processing"
+  | "success"
+  | "generating_robot"
+  | "robot_ready"
+  | "error";

@@ -83,16 +83,23 @@ body {
 }
 
 .status-validating,
-.status-processing {
+.status-processing,
+.status-generating_robot {
   color: #555;
 }
 
-.status-processing {
+.status-processing,
+.status-generating_robot {
   font-style: italic;
+}
+
+.status-robot_ready {
+  color: #1a6b3a;
 }
 
 .actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.75rem;
   margin-top: 1.25rem;
 }

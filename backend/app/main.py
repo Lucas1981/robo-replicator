@@ -5,12 +5,14 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import (
     CORS_ORIGINS,
+    DEBUG_DRAW_SAMPLE_PATH,
     DEBUG_OUTLINE_SAMPLE_PATH,
     DEBUG_PATHS_SAMPLE_PATH,
     DEBUG_SKIP_LLM_STEP,
+    DEBUG_SKIP_ROBOT_STEP,
     DEBUG_SKIP_VECTORIZE_STEP,
 )
-from app.routers import process
+from app.routers import process, robot
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +36,7 @@ app.add_middleware(
 )
 
 app.include_router(process.router, prefix="/api")
+app.include_router(robot.router, prefix="/api")
 
 
 @app.on_event("startup")
@@ -50,6 +53,12 @@ def log_startup_config() -> None:
             "using sample file at %s",
             DEBUG_PATHS_SAMPLE_PATH,
         )
+    if DEBUG_SKIP_ROBOT_STEP:
+        logger.warning(
+            "DEBUG_SKIP_ROBOT_STEP=true — robot dataset export is disabled; "
+            "using sample file at %s",
+            DEBUG_DRAW_SAMPLE_PATH,
+        )
 
 
 @app.get("/api/health")
@@ -58,4 +67,5 @@ def health() -> dict[str, str | bool]:
         "status": "ok",
         "debug_skip_llm_step": DEBUG_SKIP_LLM_STEP,
         "debug_skip_vectorize_step": DEBUG_SKIP_VECTORIZE_STEP,
+        "debug_skip_robot_step": DEBUG_SKIP_ROBOT_STEP,
     }

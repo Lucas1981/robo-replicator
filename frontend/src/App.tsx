@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { processImage } from "./api/processImage";
+import { createRobotDataset } from "./api/robotDataset";
 import type { AppStatus } from "./types";
 import { validateImage } from "./utils/validateImage";
 import "./App.css";
+
+type DownloadOutput = { blob: Blob; filename: string };
 
 export default function App() {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -11,7 +14,8 @@ export default function App() {
   const [imageInfo, setImageInfo] = useState<string | null>(null);
   const [status, setStatus] = useState<AppStatus>("idle");
   const [message, setMessage] = useState<string | null>(null);
-  const [output, setOutput] = useState<{ blob: Blob; filename: string } | null>(null);
+  const [svgOutput, setSvgOutput] = useState<DownloadOutput | null>(null);
+  const [robotOutput, setRobotOutput] = useState<DownloadOutput | null>(null);
 
   useEffect(() => {
     return () => {
@@ -20,7 +24,8 @@ export default function App() {
   }, [previewUrl]);
 
   async function handleFile(selected: File | null) {
-    setOutput(null);
+    setSvgOutput(null);
+    setRobotOutput(null);
 
     if (!selected) {
       setFile(null);
@@ -59,7 +64,8 @@ export default function App() {
     setMessage(
       "Generating outline and converting to paths… this can take 30–90 seconds unless debug mode is on.",
     );
-    setOutput(null);
+    setSvgOutput(null);
+    setRobotOutput(null);
 
     const result = await processImage(file);
 
@@ -69,12 +75,32 @@ export default function App() {
       return;
     }
 
-    setOutput({ blob: result.blob, filename: result.filename });
+    setSvgOutput({ blob: result.blob, filename: result.filename });
     setStatus("success");
-    setMessage("Processing complete. You can download the output.");
+    setMessage("SVG paths ready. Download the SVG or generate a robot replay dataset.");
   }
 
-  function handleDownload() {
+  async function handleGenerateRobotDataset() {
+    if (!svgOutput) return;
+
+    setStatus("generating_robot");
+    setMessage("Converting SVG paths to a LeRobot replay dataset…");
+    setRobotOutput(null);
+
+    const result = await createRobotDataset(svgOutput.blob, svgOutput.filename);
+
+    if (!result.ok) {
+      setStatus("success");
+      setMessage(result.error);
+      return;
+    }
+
+    setRobotOutput({ blob: result.blob, filename: result.filename });
+    setStatus("robot_ready");
+    setMessage("Robot dataset ready. Unzip and replay with lerobot-replay.");
+  }
+
+  function handleDownload(output: DownloadOutput | null) {
     if (!output) return;
 
     const url = URL.createObjectURL(output.blob);
@@ -86,13 +112,18 @@ export default function App() {
   }
 
   const canProcess = status === "ready" && file !== null;
-  const canDownload = status === "success" && output !== null;
+  const canDownloadSvg =
+    (status === "success" || status === "generating_robot" || status === "robot_ready") &&
+    svgOutput !== null;
+  const canGenerateRobot =
+    (status === "success" || status === "robot_ready") && svgOutput !== null;
+  const canDownloadRobot = status === "robot_ready" && robotOutput !== null;
 
   return (
     <main className="app">
       <header className="header">
         <h1>Robo Replicator</h1>
-        <p>Upload an image to generate a robot-ready vector path drawing.</p>
+        <p>Upload an image to generate SVG paths, then convert them for SO-101 replay.</p>
       </header>
 
       <section
@@ -140,8 +171,31 @@ export default function App() {
           {status === "processing" ? "Processing…" : "Process file"}
         </button>
 
-        <button type="button" className="secondary" disabled={!canDownload} onClick={handleDownload}>
-          Download
+        <button
+          type="button"
+          className="secondary"
+          disabled={!canDownloadSvg}
+          onClick={() => handleDownload(svgOutput)}
+        >
+          Download SVG
+        </button>
+
+        <button
+          type="button"
+          className="secondary"
+          disabled={!canGenerateRobot}
+          onClick={() => void handleGenerateRobotDataset()}
+        >
+          {status === "generating_robot" ? "Generating…" : "Generate robot dataset"}
+        </button>
+
+        <button
+          type="button"
+          className="secondary"
+          disabled={!canDownloadRobot}
+          onClick={() => handleDownload(robotOutput)}
+        >
+          Download robot zip
         </button>
       </div>
     </main>
