@@ -1,2 +1,4 @@
 .venv/
 samples/assets/
+frontend/node_modules/
+frontend/dist/

@@ -1,0 +1,119 @@
+:root {
+  color: #111;
+  background: #f6f6f4;
+  font-family: system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+.app {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 2rem 1rem 3rem;
+}
+
+.header h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.5rem;
+}
+
+.header p {
+  margin: 0;
+  color: #555;
+}
+
+.dropzone {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  background: #fff;
+  text-align: center;
+}
+
+.dropzone-placeholder p {
+  margin: 0.25rem 0;
+}
+
+.preview {
+  display: block;
+  max-width: 100%;
+  max-height: 280px;
+  margin: 0 auto 1rem;
+  border-radius: 4px;
+  object-fit: contain;
+}
+
+.file-name {
+  margin: 0.75rem 0 0;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.file-meta {
+  margin: 0.25rem 0 0;
+  color: #666;
+  font-size: 0.875rem;
+}
+
+.muted {
+  color: #888;
+  font-size: 0.875rem;
+}
+
+.status {
+  margin: 1rem 0 0;
+  font-size: 0.9375rem;
+}
+
+.status-ready,
+.status-success {
+  color: #1a6b3a;
+}
+
+.status-error {
+  color: #b42318;
+}
+
+.status-validating,
+.status-processing {
+  color: #555;
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+button {
+  padding: 0.625rem 1.25rem;
+  border: none;
+  border-radius: 6px;
+  background: #111;
+  color: #fff;
+  font-size: 0.9375rem;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+button.secondary {
+  background: #fff;
+  color: #111;
+  border: 1px solid #ccc;
+}
+
+button:not(:disabled):hover {
+  opacity: 0.9;
+}
