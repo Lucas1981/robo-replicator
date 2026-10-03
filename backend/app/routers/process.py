@@ -3,7 +3,7 @@ import logging
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from fastapi.responses import Response
 
-from app.config import MissingApiKeyError, OPENAI_IMAGE_MODEL
+from app.config import DEBUG_SKIP_LLM_STEP, MissingApiKeyError, OPENAI_IMAGE_MODEL
 from app.services.image_validation import ImageValidationError, validate_upload
 from app.services.outline import (
     OutlineGenerationError,
@@ -21,13 +21,21 @@ async def process_image(file: UploadFile = File(...)) -> Response:
     logger.info("Received process request for %s", file.filename)
     try:
         validated = await validate_upload(file)
-        logger.info(
-            "Validated %s (%dx%d), calling %s",
-            validated.filename,
-            validated.width,
-            validated.height,
-            OPENAI_IMAGE_MODEL,
-        )
+        if DEBUG_SKIP_LLM_STEP:
+            logger.info(
+                "Validated %s (%dx%d), skipping OpenAI (DEBUG_SKIP_LLM_STEP=true)",
+                validated.filename,
+                validated.width,
+                validated.height,
+            )
+        else:
+            logger.info(
+                "Validated %s (%dx%d), calling %s",
+                validated.filename,
+                validated.width,
+                validated.height,
+                OPENAI_IMAGE_MODEL,
+            )
         outline_bytes = await generate_outline(validated)
         logger.info("Outline ready for %s (%d bytes)", validated.filename, len(outline_bytes))
     except ImageValidationError as exc:

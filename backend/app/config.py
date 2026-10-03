@@ -4,7 +4,15 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 BACKEND_ROOT = Path(__file__).resolve().parent.parent
+RESOURCES_DIR = BACKEND_ROOT / "resources"
+DEFAULT_DEBUG_OUTLINE_SAMPLE = RESOURCES_DIR / "outline-sample.png"
+
 load_dotenv(BACKEND_ROOT / ".env")
+
+
+def _env_bool(name: str, default: bool = False) -> bool:
+    value = os.getenv(name, str(default)).strip().lower()
+    return value in {"1", "true", "yes", "on"}
 
 CORS_ORIGINS = os.getenv(
     "CORS_ORIGINS",
@@ -20,6 +28,12 @@ DALLE2_MAX_BYTES = 4 * 1024 * 1024
 DALLE2_EDIT_SIZE = int(os.getenv("DALLE2_EDIT_SIZE", "1024"))
 
 OPENAI_IMAGE_MODEL = os.getenv("OPENAI_IMAGE_MODEL", "gpt-image-1").strip()
+
+# When true, skip OpenAI and return DEBUG_OUTLINE_SAMPLE_PATH instead.
+DEBUG_SKIP_LLM_STEP = _env_bool("DEBUG_SKIP_LLM_STEP", False)
+DEBUG_OUTLINE_SAMPLE_PATH = Path(
+    os.getenv("DEBUG_OUTLINE_SAMPLE_PATH", str(DEFAULT_DEBUG_OUTLINE_SAMPLE))
+).resolve()
 
 OUTLINE_PROMPT = os.getenv(
     "OUTLINE_PROMPT",

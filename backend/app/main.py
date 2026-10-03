@@ -3,8 +3,10 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.config import CORS_ORIGINS
+from app.config import CORS_ORIGINS, DEBUG_OUTLINE_SAMPLE_PATH, DEBUG_SKIP_LLM_STEP
 from app.routers import process
+
+logger = logging.getLogger(__name__)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -28,6 +30,19 @@ app.add_middleware(
 app.include_router(process.router, prefix="/api")
 
 
+@app.on_event("startup")
+def log_startup_config() -> None:
+    if DEBUG_SKIP_LLM_STEP:
+        logger.warning(
+            "DEBUG_SKIP_LLM_STEP=true — OpenAI outline generation is disabled; "
+            "using sample file at %s",
+            DEBUG_OUTLINE_SAMPLE_PATH,
+        )
+
+
 @app.get("/api/health")
-def health() -> dict[str, str]:
-    return {"status": "ok"}
+def health() -> dict[str, str | bool]:
+    return {
+        "status": "ok",
+        "debug_skip_llm_step": DEBUG_SKIP_LLM_STEP,
+    }

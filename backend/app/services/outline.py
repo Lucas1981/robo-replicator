@@ -10,6 +10,8 @@ from PIL import Image
 
 from app.config import (
     DALLE2_EDIT_SIZE,
+    DEBUG_OUTLINE_SAMPLE_PATH,
+    DEBUG_SKIP_LLM_STEP,
     OPENAI_IMAGE_MODEL,
     OUTLINE_PROMPT,
     get_openai_api_key,
@@ -37,10 +39,33 @@ def output_content_type() -> str:
 
 async def generate_outline(image: ValidatedImage) -> bytes:
     """Generate a black-and-white outline drawing via the OpenAI image edit API."""
+    if DEBUG_SKIP_LLM_STEP:
+        return await asyncio.to_thread(_load_debug_outline_sample, image.filename)
+
     api_key = get_openai_api_key()
     model = OPENAI_IMAGE_MODEL
 
     return await asyncio.to_thread(_generate_outline_sync, api_key, model, image)
+
+
+def _load_debug_outline_sample(source_file: str) -> bytes:
+    sample_path = DEBUG_OUTLINE_SAMPLE_PATH
+    if not sample_path.is_file():
+        raise OutlineGenerationError(
+            f"DEBUG_SKIP_LLM_STEP is enabled but sample outline not found at {sample_path}. "
+            "Copy a PNG to backend/resources/outline-sample.png or set DEBUG_OUTLINE_SAMPLE_PATH."
+        )
+
+    logger.warning(
+        "DEBUG_SKIP_LLM_STEP is enabled in outline.py; serving sample from %s "
+        "instead of calling OpenAI for source file %r",
+        sample_path,
+        source_file,
+    )
+    data = sample_path.read_bytes()
+    with Image.open(BytesIO(data)) as decoded:
+        decoded.verify()
+    return data
 
 
 def _generate_outline_sync(api_key: str, model: str, image: ValidatedImage) -> bytes:

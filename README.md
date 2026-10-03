@@ -33,11 +33,26 @@ Edit `backend/.env`:
 ```env
 OPENAI_API_KEY=sk-your-actual-key-here
 OPENAI_IMAGE_MODEL=gpt-image-1
+DEBUG_SKIP_LLM_STEP=false
 ```
 
 Only `backend/.env.example` is committed. `backend/.env` is gitignored and must be created locally on each machine.
 
 `OPENAI_IMAGE_MODEL` defaults to `gpt-image-1`. Some accounts no longer support `dall-e-2` for image edits; if you hit model errors, keep `gpt-image-1`.
+
+#### Debug mode (skip OpenAI)
+
+While working on later pipeline stages, you can avoid costly LLM calls by setting:
+
+```env
+DEBUG_SKIP_LLM_STEP=true
+```
+
+When enabled, `/api/process` skips outline generation and returns the bundled sample at `backend/resources/outline-sample.png` instead. The API still validates your upload; only the OpenAI step is bypassed.
+
+Set `DEBUG_SKIP_LLM_STEP=false` when you want real outline generation again. Optionally point at a different file with `DEBUG_OUTLINE_SAMPLE_PATH`.
+
+Check whether debug mode is active: `curl http://127.0.0.1:8000/api/health` returns `"debug_skip_llm_step": true` or `false`.
 
 ### 3. Frontend dependencies
 
@@ -67,7 +82,7 @@ cd frontend
 npm run dev
 ```
 
-Open http://localhost:5173, upload an image, click **Process file**, then **Download** when the outline is ready. Processing usually takes 30–90 seconds.
+Open http://localhost:5173, upload an image, click **Process file**, then **Download** when the outline is ready. With OpenAI enabled, processing usually takes 30–90 seconds; with `DEBUG_SKIP_LLM_STEP=true` it returns immediately.
 
 The frontend proxies `/api` to the backend, so both must be running.
 
@@ -99,6 +114,7 @@ SO101_PORT=/dev/tty.usbmodemXXXX SO101_ID=YOUR_ARM_ID ./samples/replay-sample.sh
 
 ```
 backend/          FastAPI API (image validation, OpenAI outline generation)
+backend/resources/  Sample assets (e.g. outline-sample.png for debug mode)
 frontend/         React upload UI
 scripts/          Dataset generators and URDF visualizer
 samples/          Example LeRobot datasets and helper scripts
