@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 BACKEND_ROOT = Path(__file__).resolve().parent.parent
 RESOURCES_DIR = BACKEND_ROOT / "resources"
 DEFAULT_DEBUG_OUTLINE_SAMPLE = RESOURCES_DIR / "outline-sample.png"
+DEFAULT_DEBUG_PATHS_SAMPLE = RESOURCES_DIR / "paths-sample.svg"
 
 load_dotenv(BACKEND_ROOT / ".env")
 
@@ -33,6 +34,12 @@ OPENAI_IMAGE_MODEL = os.getenv("OPENAI_IMAGE_MODEL", "gpt-image-1").strip()
 DEBUG_SKIP_LLM_STEP = _env_bool("DEBUG_SKIP_LLM_STEP", False)
 DEBUG_OUTLINE_SAMPLE_PATH = Path(
     os.getenv("DEBUG_OUTLINE_SAMPLE_PATH", str(DEFAULT_DEBUG_OUTLINE_SAMPLE))
+).resolve()
+
+# When true, skip bitmap vectorization and return DEBUG_PATHS_SAMPLE_PATH instead.
+DEBUG_SKIP_VECTORIZE_STEP = _env_bool("DEBUG_SKIP_VECTORIZE_STEP", False)
+DEBUG_PATHS_SAMPLE_PATH = Path(
+    os.getenv("DEBUG_PATHS_SAMPLE_PATH", str(DEFAULT_DEBUG_PATHS_SAMPLE))
 ).resolve()
 
 OUTLINE_PROMPT = os.getenv(

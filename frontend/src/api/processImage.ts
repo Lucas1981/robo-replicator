@@ -60,5 +60,5 @@ function filenameFromResponse(response: Response, sourceName: string): string {
   if (match?.[1]) return match[1];
 
   const baseName = sourceName.replace(/\.[^.]+$/, "") || "output";
-  return `${baseName}-outline.png`;
+  return `${baseName}-paths.svg`;
 }

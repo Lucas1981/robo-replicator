@@ -1,6 +1,6 @@
 # Robotticelli — the bot-based art replicator
 
-This repository turns a photo into a simple outline drawing that a Hugging Face SO-101 arm can eventually trace. The current pipeline covers image upload, OpenAI-powered outline generation, and sample robot playback datasets.
+This repository turns a photo into vector drawing paths that a Hugging Face SO-101 arm can eventually trace. The current pipeline covers image upload, OpenAI-powered outline generation, bitmap-to-SVG vectorization, and sample robot playback datasets.
 
 ## Prerequisites
 
@@ -34,25 +34,34 @@ Edit `backend/.env`:
 OPENAI_API_KEY=sk-your-actual-key-here
 OPENAI_IMAGE_MODEL=gpt-image-1
 DEBUG_SKIP_LLM_STEP=false
+DEBUG_SKIP_VECTORIZE_STEP=false
 ```
 
 Only `backend/.env.example` is committed. `backend/.env` is gitignored and must be created locally on each machine.
 
 `OPENAI_IMAGE_MODEL` defaults to `gpt-image-1`. Some accounts no longer support `dall-e-2` for image edits; if you hit model errors, keep `gpt-image-1`.
 
-#### Debug mode (skip OpenAI)
+#### Debug mode (skip expensive steps)
 
-While working on later pipeline stages, you can avoid costly LLM calls by setting:
+While working on later pipeline stages, enable debug flags to avoid costly or slow steps:
 
 ```env
 DEBUG_SKIP_LLM_STEP=true
+DEBUG_SKIP_VECTORIZE_STEP=true
 ```
 
-When enabled, `/api/process` skips outline generation and returns the bundled sample at `backend/resources/outline-sample.png` instead. The API still validates your upload; only the OpenAI step is bypassed.
+| Flag | When `true` | Sample file used |
+|------|-------------|------------------|
+| `DEBUG_SKIP_LLM_STEP` | Skips OpenAI outline generation | `backend/resources/outline-sample.png` |
+| `DEBUG_SKIP_VECTORIZE_STEP` | Skips bitmap-to-SVG conversion | `backend/resources/paths-sample.svg` |
 
-Set `DEBUG_SKIP_LLM_STEP=false` when you want real outline generation again. Optionally point at a different file with `DEBUG_OUTLINE_SAMPLE_PATH`.
+The API still validates uploads. `/api/process` returns an SVG path file (`{name}-paths.svg`). Regenerate the paths sample after updating the outline sample:
 
-Check whether debug mode is active: `curl http://127.0.0.1:8000/api/health` returns `"debug_skip_llm_step": true` or `false`.
+```bash
+python backend/scripts/generate_paths_sample.py
+```
+
+Check active flags: `curl http://127.0.0.1:8000/api/health`
 
 ### 3. Frontend dependencies
 
@@ -82,7 +91,7 @@ cd frontend
 npm run dev
 ```
 
-Open http://localhost:5173, upload an image, click **Process file**, then **Download** when the outline is ready. With OpenAI enabled, processing usually takes 30–90 seconds; with `DEBUG_SKIP_LLM_STEP=true` it returns immediately.
+Open http://localhost:5173, upload an image, click **Process file**, then **Download** the SVG paths file. With both debug flags off, processing usually takes 30–90 seconds; with both debug flags on it returns immediately.
 
 The frontend proxies `/api` to the backend, so both must be running.
 
@@ -114,7 +123,7 @@ SO101_PORT=/dev/tty.usbmodemXXXX SO101_ID=YOUR_ARM_ID ./samples/replay-sample.sh
 
 ```
 backend/          FastAPI API (image validation, OpenAI outline generation)
-backend/resources/  Sample assets (e.g. outline-sample.png for debug mode)
+backend/resources/  Sample assets (outline-sample.png, paths-sample.svg)
 frontend/         React upload UI
 scripts/          Dataset generators and URDF visualizer
 samples/          Example LeRobot datasets and helper scripts
@@ -124,6 +133,6 @@ samples/          Example LeRobot datasets and helper scripts
 
 - [x] Upload interface for source images
 - [x] LLM connection to produce a cartoon-style outline
-- [ ] Convert the outline to vector paths
+- [x] Convert the outline to vector paths
 - [ ] Map paths to SO-101 joint movements
 - [ ] Export robot-ready command files

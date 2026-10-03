@@ -57,7 +57,7 @@ export default function App() {
 
     setStatus("processing");
     setMessage(
-      "Generating outline with DALL-E… this usually takes 30–90 seconds. Please keep this tab open.",
+      "Generating outline and converting to paths… this can take 30–90 seconds unless debug mode is on.",
     );
     setOutput(null);
 
@@ -92,7 +92,7 @@ export default function App() {
     <main className="app">
       <header className="header">
         <h1>Robo Replicator</h1>
-        <p>Upload an image to generate a robot-ready outline drawing.</p>
+        <p>Upload an image to generate a robot-ready vector path drawing.</p>
       </header>
 
       <section
@@ -137,7 +137,7 @@ export default function App() {
 
       <div className="actions">
         <button type="button" disabled={!canProcess} onClick={() => void handleProcess()}>
-          {status === "processing" ? "Generating outline…" : "Process file"}
+          {status === "processing" ? "Processing…" : "Process file"}
         </button>
 
         <button type="button" className="secondary" disabled={!canDownload} onClick={handleDownload}>

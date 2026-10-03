@@ -3,7 +3,13 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.config import CORS_ORIGINS, DEBUG_OUTLINE_SAMPLE_PATH, DEBUG_SKIP_LLM_STEP
+from app.config import (
+    CORS_ORIGINS,
+    DEBUG_OUTLINE_SAMPLE_PATH,
+    DEBUG_PATHS_SAMPLE_PATH,
+    DEBUG_SKIP_LLM_STEP,
+    DEBUG_SKIP_VECTORIZE_STEP,
+)
 from app.routers import process
 
 logger = logging.getLogger(__name__)
@@ -38,6 +44,12 @@ def log_startup_config() -> None:
             "using sample file at %s",
             DEBUG_OUTLINE_SAMPLE_PATH,
         )
+    if DEBUG_SKIP_VECTORIZE_STEP:
+        logger.warning(
+            "DEBUG_SKIP_VECTORIZE_STEP=true — bitmap vectorization is disabled; "
+            "using sample file at %s",
+            DEBUG_PATHS_SAMPLE_PATH,
+        )
 
 
 @app.get("/api/health")
@@ -45,4 +57,5 @@ def health() -> dict[str, str | bool]:
     return {
         "status": "ok",
         "debug_skip_llm_step": DEBUG_SKIP_LLM_STEP,
+        "debug_skip_vectorize_step": DEBUG_SKIP_VECTORIZE_STEP,
     }
