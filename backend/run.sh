@@ -15,4 +15,10 @@ else
 fi
 
 cd "${SCRIPT_DIR}"
-exec "${UVICORN}" app.main:app --reload --host 127.0.0.1 --port 8000
+echo "Starting API at http://127.0.0.1:8000 (logs below)"
+exec "${UVICORN}" app.main:app \
+  --reload \
+  --host 127.0.0.1 \
+  --port 8000 \
+  --log-level info \
+  --access-log

@@ -87,6 +87,10 @@ body {
   color: #555;
 }
 
+.status-processing {
+  font-style: italic;
+}
+
 .actions {
   display: flex;
   gap: 0.75rem;

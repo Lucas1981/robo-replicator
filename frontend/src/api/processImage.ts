@@ -1,22 +1,35 @@
 import type { ProcessResult } from "../types";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
+const PROCESS_TIMEOUT_MS = 120_000;
 
 export async function processImage(file: File): Promise<ProcessResult> {
   const formData = new FormData();
   formData.append("file", file);
+
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), PROCESS_TIMEOUT_MS);
 
   let response: Response;
   try {
     response = await fetch(`${API_BASE}/api/process`, {
       method: "POST",
       body: formData,
+      signal: controller.signal,
     });
-  } catch {
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      return {
+        ok: false,
+        error: "Processing timed out. DALL-E can take up to two minutes — please try again.",
+      };
+    }
     return {
       ok: false,
       error: "Could not reach the backend. Is it running on port 8000?",
     };
+  } finally {
+    window.clearTimeout(timeout);
   }
 
   if (!response.ok) {
@@ -47,5 +60,5 @@ function filenameFromResponse(response: Response, sourceName: string): string {
   if (match?.[1]) return match[1];
 
   const baseName = sourceName.replace(/\.[^.]+$/, "") || "output";
-  return `${baseName}-outline.svg`;
+  return `${baseName}-outline.png`;
 }

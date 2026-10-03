@@ -56,7 +56,9 @@ export default function App() {
     if (!file || status !== "ready") return;
 
     setStatus("processing");
-    setMessage("Processing image…");
+    setMessage(
+      "Generating outline with DALL-E… this usually takes 30–90 seconds. Please keep this tab open.",
+    );
     setOutput(null);
 
     const result = await processImage(file);
@@ -135,7 +137,7 @@ export default function App() {
 
       <div className="actions">
         <button type="button" disabled={!canProcess} onClick={() => void handleProcess()}>
-          {status === "processing" ? "Processing…" : "Process file"}
+          {status === "processing" ? "Generating outline…" : "Process file"}
         </button>
 
         <button type="button" className="secondary" disabled={!canDownload} onClick={handleDownload}>
