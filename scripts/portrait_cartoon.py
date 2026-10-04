@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run --script
 # /// script
 # requires-python = ">=3.9"
-# dependencies = ["opencv-python>=4.8", "openai>=1.40", "python-dotenv>=1.0"]
+# dependencies = ["opencv-python>=4.8", "numpy", "openai>=1.40", "python-dotenv>=1.0"]
 # ///
 """Snap a portrait with the USB webcam and turn it into a simple cartoon SVG.
 
@@ -32,6 +32,7 @@ from datetime import datetime
 from pathlib import Path
 
 import cv2
+import numpy as np
 from dotenv import load_dotenv
 from openai import OpenAI
 
@@ -77,6 +78,10 @@ SVG rules (strict):
 - At most 15 paths. Fewer, longer, continuous strokes are better.
 - No markdown code fences.
 """
+
+
+class CartoonError(RuntimeError):
+    """Raised when a photo cannot be saved or turned into a cartoon."""
 
 
 def list_cameras(max_index: int = 5) -> None:
@@ -125,41 +130,56 @@ def capture_portrait(camera_index: int, preview: bool) -> Path:
         cap.release()
         cv2.destroyAllWindows()
 
-    CAMERA_DIR.mkdir(exist_ok=True)
-    path = CAMERA_DIR / f"portrait_{datetime.now():%Y%m%d_%H%M%S}.jpg"
-    cv2.imwrite(str(path), frame)
+    path = save_frame(frame)
     print(f"Saved photo: {path.relative_to(PROJECT_ROOT)} ({frame.shape[1]}x{frame.shape[0]})")
     return path
+
+
+def save_frame(frame) -> Path:
+    """Write a BGR frame to camera/portrait_<timestamp>.jpg."""
+    CAMERA_DIR.mkdir(exist_ok=True)
+    path = CAMERA_DIR / f"portrait_{datetime.now():%Y%m%d_%H%M%S_%f}.jpg"
+    if not cv2.imwrite(str(path), frame):
+        raise CartoonError(f"Could not write photo: {path}")
+    return path
+
+
+def save_photo(data: bytes) -> Path:
+    """Save an encoded image (e.g. a browser webcam capture) as a portrait JPEG."""
+    frame = cv2.imdecode(np.frombuffer(data, dtype=np.uint8), cv2.IMREAD_COLOR)
+    if frame is None:
+        raise CartoonError("The photo could not be decoded.")
+    return save_frame(frame)
 
 
 def encode_image(path: Path, max_side: int = 1024) -> str:
     """Downscale to keep the request small, return a JPEG data URL."""
     image = cv2.imread(str(path))
     if image is None:
-        sys.exit(f"Could not read image: {path}")
+        raise CartoonError(f"Could not read image: {path}")
     scale = max_side / max(image.shape[:2])
     if scale < 1:
         image = cv2.resize(image, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
     ok, buffer = cv2.imencode(".jpg", image, [cv2.IMWRITE_JPEG_QUALITY, 90])
     if not ok:
-        sys.exit(f"Could not encode image: {path}")
+        raise CartoonError(f"Could not encode image: {path}")
     return "data:image/jpeg;base64," + base64.b64encode(buffer.tobytes()).decode()
 
 
 def extract_svg(text: str) -> str:
     match = re.search(r"<svg\b.*?</svg>", text, flags=re.DOTALL | re.IGNORECASE)
     if not match:
-        raise ValueError("The model reply contained no <svg> element.")
+        raise CartoonError("The model reply contained no <svg> element.")
     return match.group(0)
 
 
-def cartoonize(photo: Path, model: str) -> Path:
+def cartoonize(photo: Path, model: str = DEFAULT_MODEL) -> Path:
+    """Send the photo to Kimi and save the cartoon as image/<photo stem>.svg."""
     api_key = os.environ.get("NEBIUS_API_KEY")
     if not api_key:
-        sys.exit("Set NEBIUS_API_KEY in .env (see .env.example) or in your environment.")
+        raise CartoonError("Set NEBIUS_API_KEY in .env (see .env.example) or in your environment.")
 
     client = OpenAI(base_url=NEBIUS_BASE_URL, api_key=api_key)
-    print(f"Asking {model} for a cartoon...")
     response = client.chat.completions.create(
         model=model,
         max_tokens=8000,
@@ -179,13 +199,12 @@ def cartoonize(photo: Path, model: str) -> Path:
     reply = choice.message.content or ""
     try:
         svg = extract_svg(reply)
-    except ValueError as error:
-        sys.exit(f"{error} (finish_reason={choice.finish_reason})\nReply was:\n{reply[:2000]}")
+    except CartoonError as error:
+        raise CartoonError(f"{error} (finish_reason={choice.finish_reason})") from error
 
     IMAGE_DIR.mkdir(exist_ok=True)
     path = IMAGE_DIR / f"{photo.stem}.svg"
     path.write_text(svg + "\n", encoding="utf-8")
-    print(f"Saved cartoon: {path.relative_to(PROJECT_ROOT)}")
     return path
 
 
@@ -204,8 +223,13 @@ def main() -> None:
         list_cameras()
         return
 
-    photo = args.image.resolve() if args.image else capture_portrait(args.camera_index, preview=not args.no_preview)
-    cartoonize(photo, args.model)
+    try:
+        photo = args.image.resolve() if args.image else capture_portrait(args.camera_index, preview=not args.no_preview)
+        print(f"Asking {args.model} for a cartoon...")
+        path = cartoonize(photo, args.model)
+    except CartoonError as error:
+        sys.exit(str(error))
+    print(f"Saved cartoon: {path.relative_to(PROJECT_ROOT)}")
 
 
 if __name__ == "__main__":

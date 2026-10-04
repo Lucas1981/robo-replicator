@@ -12,7 +12,7 @@ from app.config import (
     DEBUG_SKIP_ROBOT_STEP,
     DEBUG_SKIP_VECTORIZE_STEP,
 )
-from app.routers import process, robot
+from app.routers import portrait, process, robot
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +37,7 @@ app.add_middleware(
 
 app.include_router(process.router, prefix="/api")
 app.include_router(robot.router, prefix="/api")
+app.include_router(portrait.router, prefix="/api")
 
 
 @app.on_event("startup")

@@ -63,6 +63,9 @@ Regenerate samples: `python backend/scripts/generate_paths_sample.py` and `pytho
 | `samples/replay-sample.sh` | Replay the square demo on hardware |
 | `backend/scripts/generate_robot_dataset.py` | Convert an SVG to a dataset offline |
 
-## Optional: CLI portrait cartoon (Nebius / Kimi)
+## Vin: portrait cartoon (Nebius / Kimi)
 
-Separate from the web app — webcam portrait to line-art SVG via `scripts/portrait-cartoon.sh`. Uses root `.env` with `NEBIUS_API_KEY` (see `.env.example`).
+Webcam portrait to smiley-style line-art SVG via `scripts/portrait_cartoon.py`. Uses root `.env` with `NEBIUS_API_KEY` (see `.env.example`).
+
+- **Web app:** **Take photo** saves the capture to `camera/` (`POST /api/portrait/photo`); **Sketch with Vin** saves the cartoon to `image/` (`POST /api/portrait/cartoon`) and feeds it to the robot dataset step.
+- **CLI:** `scripts/portrait-cartoon.sh` (preview window, SPACE to snap).
