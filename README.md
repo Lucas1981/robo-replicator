@@ -144,6 +144,20 @@ Replay a downloaded dataset (unzip `{name}-draw.zip` first):
 SO101_PORT=/dev/tty.usbmodemXXXX SO101_ID=YOUR_ARM_ID ./samples/replay-draw.sh /path/to/extracted_draw_folder
 ```
 
+## Vin: portrait → cartoon (webcam + Kimi-K2.6)
+
+Snap a portrait with the USB webcam and let Kimi-K2.6 (Nebius Token Factory) turn it into a simple, smiley-style line drawing. The model replies with stroke-only SVG paths, which is the vector format the drawing pipeline needs.
+
+```bash
+cp .env.example .env                         # put your Nebius Token Factory key in .env
+scripts/portrait-cartoon.sh                  # preview window, SPACE to snap
+scripts/portrait-cartoon.sh --no-preview
+scripts/portrait-cartoon.sh --image camera/portrait_20261003_181500.jpg
+scripts/portrait-cartoon.sh --list-cameras   # if the webcam isn't index 0
+```
+
+Photos go to `camera/`, cartoons to `image/`. Those and `.env` are git-ignored. On a shared machine, delete `.env` (and the photos) when you're done.
+
 ## Project layout
 
 ```
