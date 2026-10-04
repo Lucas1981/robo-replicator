@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Hair outline: top and sides -->
+  <path fill="none" stroke="black" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="M 160 280 C 150 220 170 140 220 110 C 260 90 320 90 350 130 C 380 170 380 240 360 300 C 370 260 370 200 340 160 C 310 120 250 120 210 150 C 170 180 160 240 160 280 Z"/>
+  <!-- Face oval -->
+  <path fill="none" stroke="black" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="M 146 260 C 146 180 180 130 256 130 C 332 130 366 180 366 260 C 366 340 340 390 256 390 C 172 390 146 340 146 260 Z"/>
+  <!-- Left eye arc (happy) -->
+  <path fill="none" stroke="black" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="M 195 245 Q 210 235 225 245"/>
+  <!-- Right eye arc (happy) -->
+  <path fill="none" stroke="black" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="M 287 245 Q 302 235 317 245"/>
+  <!-- Left glasses ring -->
+  <path fill="none" stroke="black" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="M 180 240 C 180 210 200 200 220 200 C 240 200 250 220 250 240 C 250 270 230 280 210 280 C 190 280 180 260 180 240 Z"/>
+  <!-- Right glasses ring -->
+  <path fill="none" stroke="black" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="M 262 240 C 262 210 282 200 302 200 C 322 200 332 220 332 240 C 332 270 312 280 292 280 C 272 280 262 260 262 240 Z"/>
+  <!-- Glasses bridge -->
+  <path fill="none" stroke="black" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="M 250 245 L 262 245"/>
+  <!-- Nose tiny curve -->
+  <path fill="none" stroke="black" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="M 248 285 Q 256 295 264 285"/>
+  <!-- Big smile -->
+  <path fill="none" stroke="black" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="M 200 310 Q 256 360 312 310"/>
+</svg>
