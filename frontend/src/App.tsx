@@ -64,7 +64,7 @@ export default function App() {
 
     setStatus("processing");
     setMessage(
-      "Generating outline and converting to paths… this can take 30–90 seconds unless debug mode is on.",
+      "Generating outline and converting to paths… this can take 30–90 seconds.",
     );
     setSvgOutput(null);
     setRobotOutput(null);

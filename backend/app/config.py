@@ -51,11 +51,14 @@ DEBUG_DRAW_SAMPLE_PATH = Path(
 OUTLINE_PROMPT = os.getenv(
     "OUTLINE_PROMPT",
     (
-        "Convert this into a very simple black-and-white outline drawing of the same subject. "
+        "Convert this into a very simple black-and-white outline drawing of the main person "
+        "in the foreground — the person closest to the camera and centered in the frame. "
+        "Draw only that person. Ignore and omit the background entirely: no walls, furniture, "
+        "objects, scenery, patterns, clutter, or other people. "
         "Use clean, minimal black line art on a pure white background. "
         "No grayscale, no shading, no color, no fills, and no textures. "
-        "Preserve the main contours and recognizable silhouette with as few strokes as possible. "
-        "The result should look like a cartoon line drawing suitable for a pen plotter robot."
+        "Preserve the person's main contours and recognizable silhouette with as few strokes as possible. "
+        "The result should look like a cartoon line drawing of the person alone, suitable for a pen plotter robot."
     ),
 )
 
