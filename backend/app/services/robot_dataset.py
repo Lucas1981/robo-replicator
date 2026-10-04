@@ -8,7 +8,11 @@ from pathlib import Path
 from app.config import DEBUG_DRAW_SAMPLE_PATH, DEBUG_SKIP_ROBOT_STEP
 from app.services.dataset_replay_scripts import write_replay_scripts
 from app.services.robot_config import DATASET_FEATURES, FPS
-from app.services.robot_trajectory import build_trajectory, estimate_duration_seconds
+from app.services.robot_trajectory import (
+    build_trajectory,
+    estimate_duration_seconds,
+    write_draw_source_meta,
+)
 from app.services.svg_parser import SvgParseError, parse_svg_paths
 
 logger = logging.getLogger(__name__)
@@ -60,7 +64,7 @@ def _load_debug_draw_sample(source_filename: str) -> bytes:
 def _write_dataset_directory(svg_bytes: bytes, source_filename: str, task: str) -> tuple[Path, Path]:
     try:
         parsed = parse_svg_paths(svg_bytes)
-        trajectory = build_trajectory(parsed)
+        result = build_trajectory(parsed)
     except (SvgParseError, ValueError) as exc:
         raise RobotDatasetError(str(exc)) from exc
 
@@ -80,7 +84,7 @@ def _write_dataset_directory(svg_bytes: bytes, source_filename: str, task: str) 
         use_videos=False,
     )
 
-    for joints in trajectory:
+    for joints in result.frames:
         dataset.add_frame(
             {
                 "action": torch.tensor(joints, dtype=torch.float32),
@@ -91,16 +95,21 @@ def _write_dataset_directory(svg_bytes: bytes, source_filename: str, task: str) 
 
     dataset.save_episode()
     dataset.finalize()
+    write_draw_source_meta(temp_root, result.mapping, source_filename=source_filename)
     write_replay_scripts(temp_root, repo_id)
 
-    duration = estimate_duration_seconds(len(trajectory), FPS)
+    duration = estimate_duration_seconds(len(result.frames), FPS)
     logger.info(
-        "Built LeRobotDataset for %r: %d paths, %d frames, %.1fs @ %d fps",
+        "Built LeRobotDataset for %r: %d paths, %d frames, %.1fs @ %d fps "
+        "(svg %gx%g, scale %.6g)",
         source_filename,
         len(parsed.paths),
-        len(trajectory),
+        len(result.frames),
         duration,
         FPS,
+        result.mapping.svg_width,
+        result.mapping.svg_height,
+        result.mapping.scale,
     )
     return temp_root, temp_parent
 
@@ -111,7 +120,7 @@ def write_dataset_directory(svg_bytes: bytes, output_dir: Path, source_filename:
 
     try:
         parsed = parse_svg_paths(svg_bytes)
-        trajectory = build_trajectory(parsed)
+        result = build_trajectory(parsed)
     except (SvgParseError, ValueError) as exc:
         raise RobotDatasetError(str(exc)) from exc
 
@@ -128,7 +137,7 @@ def write_dataset_directory(svg_bytes: bytes, output_dir: Path, source_filename:
         use_videos=False,
     )
 
-    for joints in trajectory:
+    for joints in result.frames:
         dataset.add_frame(
             {
                 "action": torch.tensor(joints, dtype=torch.float32),
@@ -139,6 +148,7 @@ def write_dataset_directory(svg_bytes: bytes, output_dir: Path, source_filename:
 
     dataset.save_episode()
     dataset.finalize()
+    write_draw_source_meta(output_dir, result.mapping, source_filename=source_filename)
     write_replay_scripts(output_dir, repo_id)
     return output_dir
 

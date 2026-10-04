@@ -10,16 +10,26 @@ HOME_POSE = {
     "wrist_roll": float(os.getenv("ROBOT_HOME_WRIST_ROLL", "0.0")),
 }
 
+# Portrait A4 canvas (210 × 297 mm) staged vertically in front of the arm.
+# Pan maps the short axis (width); lift maps the long axis (height).
+CANVAS_WIDTH_MM = float(os.getenv("ROBOT_CANVAS_WIDTH_MM", "210.0"))
+CANVAS_HEIGHT_MM = float(os.getenv("ROBOT_CANVAS_HEIGHT_MM", "297.0"))
+CANVAS_ASPECT = CANVAS_WIDTH_MM / CANVAS_HEIGHT_MM
+
 CANVAS_HALF_EXTENT_PAN = float(os.getenv("ROBOT_CANVAS_HALF_EXTENT_PAN", "12.0"))
 CANVAS_HALF_EXTENT_LIFT = float(os.getenv("ROBOT_CANVAS_HALF_EXTENT_LIFT", "10.0"))
 
 PEN_UP = float(os.getenv("ROBOT_PEN_UP", "10.0"))
 PEN_DOWN = float(os.getenv("ROBOT_PEN_DOWN", "85.0"))
 
-FRAMES_TRAVEL = int(os.getenv("ROBOT_FRAMES_TRAVEL", "15"))
 FRAMES_PEN_SETTLE = int(os.getenv("ROBOT_FRAMES_PEN_SETTLE", "5"))
-FRAMES_PER_UNIT = float(os.getenv("ROBOT_FRAMES_PER_UNIT", "15.0"))
 MIN_DRAW_FRAMES = int(os.getenv("ROBOT_MIN_DRAW_FRAMES", "2"))
+MIN_TRAVEL_FRAMES = int(os.getenv("ROBOT_MIN_TRAVEL_FRAMES", "2"))
+
+# Constant end-effector speeds on the canvas (mm/s). Draw speed is arm-sketch pace;
+# travel (pen up) is faster so repositioning does not dominate total time.
+DRAW_SPEED_MM_S = float(os.getenv("ROBOT_DRAW_SPEED_MM_S", "60.0"))
+TRAVEL_SPEED_MM_S = float(os.getenv("ROBOT_TRAVEL_SPEED_MM_S", "150.0"))
 CANVAS_MARGIN = float(os.getenv("ROBOT_CANVAS_MARGIN", "0.05"))
 BEZIER_SAMPLES = int(os.getenv("ROBOT_BEZIER_SAMPLES", "12"))
 

@@ -46,14 +46,22 @@ def main() -> None:
 
     try:
         parsed = parse_svg_paths(svg_bytes)
-        trajectory = build_trajectory(parsed)
+        result = build_trajectory(parsed)
         write_dataset_directory(svg_bytes, output_dir, svg_path.name, task)
     except (RobotDatasetError, ValueError) as exc:
         raise SystemExit(str(exc)) from exc
 
-    duration = estimate_duration_seconds(len(trajectory), FPS)
+    duration = estimate_duration_seconds(len(result.frames), FPS)
+    mapping = result.mapping
     print(f"Wrote dataset to {output_dir}")
-    print(f"  paths: {len(parsed.paths)}  frames: {len(trajectory)}  duration: {duration:.1f}s @ {FPS} fps")
+    print(
+        f"  paths: {len(parsed.paths)}  frames: {len(result.frames)}  "
+        f"duration: {duration:.1f}s @ {FPS} fps"
+    )
+    print(
+        f"  svg: {mapping.svg_width:g}x{mapping.svg_height:g}  "
+        f"scale: {mapping.scale:.6g}  canvas: {mapping.canvas_width_mm:g}x{mapping.canvas_height_mm:g} mm"
+    )
     print()
     print("Replay with:")
     print("  lerobot-replay \\")

@@ -1,0 +1,17 @@
+{
+  "source_filename": "canvas-box.svg",
+  "svg_width": 210.0,
+  "svg_height": 297.0,
+  "canvas_width_mm": 210.0,
+  "canvas_height_mm": 297.0,
+  "canvas_aspect": 0.7070707070707071,
+  "transform": {
+    "scale": 0.006397306397306397,
+    "pan_min": -0.6717171717171717,
+    "pan_max": 0.6717171717171717,
+    "lift_min": -0.95,
+    "lift_max": 0.95,
+    "pan_pad": 0.0,
+    "lift_pad": 0.0
+  }
+}
