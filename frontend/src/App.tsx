@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { processImage } from "./api/processImage";
 import { createRobotDataset } from "./api/robotDataset";
+import CameraCaptureModal from "./components/CameraCaptureModal";
 import type { AppStatus } from "./types";
 import { validateImage } from "./utils/validateImage";
 import "./App.css";
@@ -16,6 +17,7 @@ export default function App() {
   const [message, setMessage] = useState<string | null>(null);
   const [svgOutput, setSvgOutput] = useState<DownloadOutput | null>(null);
   const [robotOutput, setRobotOutput] = useState<DownloadOutput | null>(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -122,8 +124,8 @@ export default function App() {
   return (
     <main className="app">
       <header className="header">
-        <h1>Robo Replicator</h1>
-        <p>Upload an image to generate SVG paths, then convert them for SO-101 replay.</p>
+        <h1>Robotticelli</h1>
+        <p>Upload or capture an image to generate SVG paths, then convert them for SO-101 replay.</p>
       </header>
 
       <section
@@ -152,9 +154,14 @@ export default function App() {
           </div>
         )}
 
-        <button type="button" className="secondary" onClick={() => inputRef.current?.click()}>
-          Choose file
-        </button>
+        <div className="dropzone-actions">
+          <button type="button" className="secondary" onClick={() => inputRef.current?.click()}>
+            Choose file
+          </button>
+          <button type="button" className="secondary" onClick={() => setCameraOpen(true)}>
+            Take photo
+          </button>
+        </div>
 
         {file && <p className="file-name">{file.name}</p>}
         {imageInfo && <p className="file-meta">{imageInfo}</p>}
@@ -198,6 +205,12 @@ export default function App() {
           Download robot zip
         </button>
       </div>
+
+      <CameraCaptureModal
+        open={cameraOpen}
+        onClose={() => setCameraOpen(false)}
+        onCapture={(captured) => void handleFile(captured)}
+      />
     </main>
   );
 }
