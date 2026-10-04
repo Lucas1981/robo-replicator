@@ -6,6 +6,7 @@ import zipfile
 from pathlib import Path
 
 from app.config import DEBUG_DRAW_SAMPLE_PATH, DEBUG_SKIP_ROBOT_STEP
+from app.services.dataset_replay_scripts import write_replay_scripts
 from app.services.robot_config import DATASET_FEATURES, FPS
 from app.services.robot_trajectory import build_trajectory, estimate_duration_seconds
 from app.services.svg_parser import SvgParseError, parse_svg_paths
@@ -90,6 +91,7 @@ def _write_dataset_directory(svg_bytes: bytes, source_filename: str, task: str) 
 
     dataset.save_episode()
     dataset.finalize()
+    write_replay_scripts(temp_root, repo_id)
 
     duration = estimate_duration_seconds(len(trajectory), FPS)
     logger.info(
@@ -137,6 +139,7 @@ def write_dataset_directory(svg_bytes: bytes, output_dir: Path, source_filename:
 
     dataset.save_episode()
     dataset.finalize()
+    write_replay_scripts(output_dir, repo_id)
     return output_dir
 
 
