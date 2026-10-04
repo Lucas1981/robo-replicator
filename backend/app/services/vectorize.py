@@ -11,6 +11,7 @@ from skan import Skeleton
 from skimage.morphology import skeletonize
 
 from app.config import DEBUG_OUTLINE_SAMPLE_PATH, DEBUG_PATHS_SAMPLE_PATH, DEBUG_SKIP_VECTORIZE_STEP
+from app.services.svg_parser import SVG_PATH_PADDING, content_bounds_with_padding
 
 logger = logging.getLogger(__name__)
 
@@ -70,11 +71,14 @@ def _bitmap_to_svg(outline_png: bytes, source_filename: str) -> bytes:
             f"No drawable outlines found in the bitmap for source file {source_filename!r}."
         )
 
-    svg_bytes = _contours_to_svg(contours, width, height, source_filename)
+    contours, crop_width, crop_height = _crop_contours_to_bounds(contours, SVG_PATH_PADDING)
+    svg_bytes = _contours_to_svg(contours, crop_width, crop_height, source_filename)
     logger.info(
-        "Vectorized outline for %r into %d centerline paths (%dx%d)",
+        "Vectorized outline for %r into %d centerline paths (cropped viewBox %dx%d from %dx%d)",
         source_filename,
         len(contours),
+        int(round(crop_width)),
+        int(round(crop_height)),
         width,
         height,
     )
@@ -129,19 +133,51 @@ def _extract_skeleton_paths(skeleton: np.ndarray) -> list[np.ndarray]:
     return filtered
 
 
+def _contour_bounds(contours: list[np.ndarray]) -> tuple[float, float, float, float]:
+    xs: list[float] = []
+    ys: list[float] = []
+    for contour in contours:
+        for point in contour:
+            xs.append(float(point[0][0]))
+            ys.append(float(point[0][1]))
+    return min(xs), min(ys), max(xs), max(ys)
+
+
+def _crop_contours_to_bounds(
+    contours: list[np.ndarray],
+    padding_fraction: float,
+) -> tuple[list[np.ndarray], float, float]:
+    min_x, min_y, max_x, max_y = _contour_bounds(contours)
+    crop_x, crop_y, crop_width, crop_height = content_bounds_with_padding(
+        min_x, min_y, max_x, max_y, padding_fraction
+    )
+    offset_x = int(round(crop_x))
+    offset_y = int(round(crop_y))
+    cropped: list[np.ndarray] = []
+    for contour in contours:
+        points = [
+            [[int(round(point[0][0])) - offset_x, int(round(point[0][1])) - offset_y]]
+            for point in contour
+        ]
+        cropped.append(np.array(points, dtype=np.int32))
+    return cropped, crop_width, crop_height
+
+
 def _contours_to_svg(
     contours: list[np.ndarray],
-    width: int,
-    height: int,
+    width: float,
+    height: float,
     source_filename: str,
 ) -> bytes:
+    view_width = max(1, int(round(width)))
+    view_height = max(1, int(round(height)))
     svg = Element(
         "svg",
         {
             "xmlns": "http://www.w3.org/2000/svg",
-            "viewBox": f"0 0 {width} {height}",
-            "width": str(width),
-            "height": str(height),
+            "viewBox": f"0 0 {view_width} {view_height}",
+            "width": str(view_width),
+            "height": str(view_height),
         },
     )
 

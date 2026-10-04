@@ -41,7 +41,7 @@ Processing usually takes 30–90 seconds with debug flags off.
 Unzip the robot zip, then:
 
 ```bash
-./replay-virtual.sh                                          # Rerun preview
+./replay-virtual.sh                                          # Rerun 3D SO-101 arm preview
 SO101_PORT=/dev/tty.usbmodemXXXX SO101_ID=YOUR_ID ./replay-follower.sh
 ```
 

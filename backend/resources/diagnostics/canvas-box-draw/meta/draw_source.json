@@ -2,16 +2,66 @@
   "source_filename": "canvas-box.svg",
   "svg_width": 210.0,
   "svg_height": 297.0,
+  "source_svg_width": 210.0,
+  "source_svg_height": 297.0,
+  "crop_x": 0.0,
+  "crop_y": 0.0,
   "canvas_width_mm": 210.0,
   "canvas_height_mm": 297.0,
   "canvas_aspect": 0.7070707070707071,
+  "canvas_orientation": "horizontal",
   "transform": {
-    "scale": 0.006397306397306397,
-    "pan_min": -0.6717171717171717,
-    "pan_max": 0.6717171717171717,
-    "lift_min": -0.95,
-    "lift_max": 0.95,
-    "pan_pad": 0.0,
-    "lift_pad": 0.0
+    "scale": 0.0030303030303030303,
+    "content_width": 0.6363636363636364,
+    "content_height": 0.9,
+    "u_pad": 0.18181818181818182,
+    "v_pad": 0.05
+  },
+  "planar_canvas": {
+    "near_offset_mm": 262.6,
+    "depth_mm": 74.44331088731319,
+    "width_mm": 189.0,
+    "plane_z_mm": 35.0,
+    "orientation_weight": 0.05,
+    "near_offset_fraction": 0.8,
+    "base_clearance_mm": 25.0,
+    "v_near_fraction": 0.12,
+    "canvas_margin": 0.05
+  },
+  "corner_poses": {
+    "top_left": [
+      13.98416024086334,
+      -87.06313731694284,
+      66.51407960191118,
+      94.99984017946127,
+      16.982994282447468
+    ],
+    "top_right": [
+      -25.804931978658143,
+      -76.37950900458841,
+      56.568846269920265,
+      94.99984017946129,
+      -45.91823680979201
+    ],
+    "bottom_right": [
+      -30.929908125612396,
+      50.451721495753695,
+      5.728901625099785,
+      26.146522277227263,
+      -5.207218984164034
+    ],
+    "bottom_left": [
+      6.900491307484129,
+      57.836603540721995,
+      -50.93877620638057,
+      83.19258969968952,
+      9.710960796551452
+    ]
+  },
+  "motion": {
+    "fps": 30,
+    "draw_speed_mm_s": 60.0,
+    "travel_speed_mm_s": 150.0,
+    "travel_lift_mm": 15.0
   }
 }

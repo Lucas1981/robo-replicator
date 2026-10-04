@@ -5,29 +5,27 @@
         "action": {
             "dtype": "float32",
             "shape": [
-                6
+                5
             ],
             "names": [
                 "shoulder_pan.pos",
                 "shoulder_lift.pos",
                 "elbow_flex.pos",
                 "wrist_flex.pos",
-                "wrist_roll.pos",
-                "gripper.pos"
+                "wrist_roll.pos"
             ]
         },
         "observation.state": {
             "dtype": "float32",
             "shape": [
-                6
+                5
             ],
             "names": [
                 "shoulder_pan.pos",
                 "shoulder_lift.pos",
                 "elbow_flex.pos",
                 "wrist_flex.pos",
-                "wrist_roll.pos",
-                "gripper.pos"
+                "wrist_roll.pos"
             ]
         },
         "timestamp": {
@@ -67,7 +65,7 @@
         }
     },
     "total_episodes": 1,
-    "total_frames": 314,
+    "total_frames": 435,
     "total_tasks": 1,
     "chunks_size": 1000,
     "data_files_size_in_mb": 100,

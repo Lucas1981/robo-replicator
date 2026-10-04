@@ -95,7 +95,13 @@ def _write_dataset_directory(svg_bytes: bytes, source_filename: str, task: str) 
 
     dataset.save_episode()
     dataset.finalize()
-    write_draw_source_meta(temp_root, result.mapping, source_filename=source_filename)
+    write_draw_source_meta(
+        temp_root,
+        result.mapping,
+        result.planar_model,
+        result.corner_joints,
+        source_filename=source_filename,
+    )
     write_replay_scripts(temp_root, repo_id)
 
     duration = estimate_duration_seconds(len(result.frames), FPS)
@@ -148,7 +154,13 @@ def write_dataset_directory(svg_bytes: bytes, output_dir: Path, source_filename:
 
     dataset.save_episode()
     dataset.finalize()
-    write_draw_source_meta(output_dir, result.mapping, source_filename=source_filename)
+    write_draw_source_meta(
+        output_dir,
+        result.mapping,
+        result.planar_model,
+        result.corner_joints,
+        source_filename=source_filename,
+    )
     write_replay_scripts(output_dir, repo_id)
     return output_dir
 

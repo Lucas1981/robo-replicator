@@ -1,4 +1,5 @@
 import math
+import os
 import re
 from dataclasses import dataclass
 from xml.etree import ElementTree as ET
@@ -6,6 +7,9 @@ from xml.etree import ElementTree as ET
 from app.services.robot_config import BEZIER_SAMPLES
 
 SVG_NS = "http://www.w3.org/2000/svg"
+
+# Padding around path bounds as a fraction of content width/height (per axis).
+SVG_PATH_PADDING = float(os.getenv("SVG_PATH_PADDING", "0.05"))
 
 
 class SvgParseError(ValueError):
@@ -17,6 +21,10 @@ class ParsedSvg:
     width: float
     height: float
     paths: list[list[tuple[float, float]]]
+    source_width: float | None = None
+    source_height: float | None = None
+    crop_x: float = 0.0
+    crop_y: float = 0.0
 
 
 def parse_svg_paths(svg_bytes: bytes) -> ParsedSvg:
@@ -42,7 +50,81 @@ def parse_svg_paths(svg_bytes: bytes) -> ParsedSvg:
     if not paths:
         raise SvgParseError("SVG contains no drawable path elements.")
 
-    return ParsedSvg(width=width, height=height, paths=paths)
+    source_width, source_height = width, height
+    crop_x = 0.0
+    crop_y = 0.0
+    if _needs_content_crop(paths, width, height, SVG_PATH_PADDING):
+        paths, width, height, crop_x, crop_y = crop_paths_to_bounds(paths, SVG_PATH_PADDING)
+    return ParsedSvg(
+        width=width,
+        height=height,
+        paths=paths,
+        source_width=source_width,
+        source_height=source_height,
+        crop_x=crop_x,
+        crop_y=crop_y,
+    )
+
+
+def _needs_content_crop(
+    paths: list[list[tuple[float, float]]],
+    viewbox_width: float,
+    viewbox_height: float,
+    padding_fraction: float,
+) -> bool:
+    min_x, min_y, max_x, max_y = paths_bounds(paths)
+    if viewbox_width <= 0 or viewbox_height <= 0:
+        return True
+
+    edge_tolerance = padding_fraction + 0.01
+    left_gap = min_x / viewbox_width
+    top_gap = min_y / viewbox_height
+    right_gap = (viewbox_width - max_x) / viewbox_width
+    bottom_gap = (viewbox_height - max_y) / viewbox_height
+    if max(left_gap, top_gap, right_gap, bottom_gap) > edge_tolerance:
+        return True
+
+    used_width = (max_x - min_x) / viewbox_width
+    used_height = (max_y - min_y) / viewbox_height
+    return used_width < 0.98 or used_height < 0.98
+
+
+def paths_bounds(paths: list[list[tuple[float, float]]]) -> tuple[float, float, float, float]:
+    xs = [point[0] for path in paths for point in path]
+    ys = [point[1] for path in paths for point in path]
+    return min(xs), min(ys), max(xs), max(ys)
+
+
+def content_bounds_with_padding(
+    min_x: float,
+    min_y: float,
+    max_x: float,
+    max_y: float,
+    padding_fraction: float,
+) -> tuple[float, float, float, float]:
+    content_width = max(max_x - min_x, 1.0)
+    content_height = max(max_y - min_y, 1.0)
+    pad_x = content_width * padding_fraction
+    pad_y = content_height * padding_fraction
+    crop_x = min_x - pad_x
+    crop_y = min_y - pad_y
+    crop_width = content_width + 2.0 * pad_x
+    crop_height = content_height + 2.0 * pad_y
+    return crop_x, crop_y, crop_width, crop_height
+
+
+def crop_paths_to_bounds(
+    paths: list[list[tuple[float, float]]],
+    padding_fraction: float,
+) -> tuple[list[list[tuple[float, float]]], float, float, float, float]:
+    min_x, min_y, max_x, max_y = paths_bounds(paths)
+    crop_x, crop_y, crop_width, crop_height = content_bounds_with_padding(
+        min_x, min_y, max_x, max_y, padding_fraction
+    )
+    cropped_paths = [
+        [(x - crop_x, y - crop_y) for x, y in path] for path in paths
+    ]
+    return cropped_paths, crop_width, crop_height, crop_x, crop_y
 
 
 def _viewbox_size(root: ET.Element) -> tuple[float, float]:

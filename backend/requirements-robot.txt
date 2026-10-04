@@ -1,2 +1,2 @@
 -r requirements.txt
-lerobot[dataset]>=0.6.0
+lerobot[dataset,placo-dep]>=0.6.0
